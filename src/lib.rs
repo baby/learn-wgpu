@@ -39,9 +39,7 @@ struct State {
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
     render_pipeline: wgpu::RenderPipeline,
-    render_pipeline_alt: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
-    color: bool,
     num_vertices: u32,
 }
 
@@ -80,8 +78,6 @@ impl State {
             present_mode: wgpu::PresentMode::Fifo,
         };
         surface.configure(&device, &config);
-
-        let color = true;
 
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some("shader"),
@@ -142,42 +138,6 @@ impl State {
             multiview: None,
         });
 
-        let render_pipeline_alt =
-        device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Render Pipeline"),
-            layout: Some(&render_pipeline_layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: "vs_main",
-                buffers: &[],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: "fs_main_alt",
-                targets: &[wgpu::ColorTargetState {
-                    format: config.format,
-                    blend: Some(wgpu::BlendState::REPLACE),
-                    write_mask: wgpu::ColorWrites::ALL,
-                }],
-            }),
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
-                polygon_mode: wgpu::PolygonMode::Fill,
-                unclipped_depth: false,
-                conservative: false,
-            },
-            depth_stencil: None,
-            multisample: wgpu::MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
-            multiview: None,
-        });
-
         Self {
             surface,
             device,
@@ -185,9 +145,7 @@ impl State {
             config,
             size,
             render_pipeline,
-            render_pipeline_alt,
             vertex_buffer,
-            color,
             num_vertices,
         }
     }
@@ -213,7 +171,7 @@ impl State {
                     ..
             } => {
                 if *state == ElementState::Pressed {
-                    self.color = !self.color;
+                    
                 };
                 true
             }
@@ -253,11 +211,7 @@ impl State {
                 depth_stencil_attachment: None,
             });
 
-            render_pass.set_pipeline(if self.color {
-                &self.render_pipeline
-            } else {
-                &self.render_pipeline_alt
-            });
+            render_pass.set_pipeline(&self.render_pipeline);
             render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
             render_pass.draw(0..self.num_vertices, 0..1);
         }
