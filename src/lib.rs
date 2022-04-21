@@ -32,7 +32,7 @@ impl State {
         let (device, queue) = adapter
             .request_device(
                 &wgpu::DeviceDescriptor {
-                    features: wgpu::Features::empty(),
+                    features: wgpu::Features::POLYGON_MODE_LINE,
                     limits: wgpu::Limits::default(),
                     label: None,
                 },
